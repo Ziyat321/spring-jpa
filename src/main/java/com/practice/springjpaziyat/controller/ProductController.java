@@ -34,7 +34,8 @@ public class ProductController {
             List<Option> options = optionRepository.findAllByCategoryOrderByName(product.getCategory());
             List<Value> values = valueRepository.findAllByProductAndOptionInOrderByOption(product, options);
             Map<String, String> valuesMap = new HashMap<>();
-            for (int i = 0; i < options.size(); i++) {
+            int size = Math.min(options.size(), values.size());
+            for (int i = 0; i < size; i++) {
                 valuesMap.put(options.get(i).getName(), values.get(i).getName());
             }
             ProductDto productDto = ProductDto.of(product, valuesMap);
