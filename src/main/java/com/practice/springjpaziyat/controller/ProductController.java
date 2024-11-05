@@ -12,10 +12,7 @@ import com.practice.springjpaziyat.repository.ValueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,18 +26,47 @@ public class ProductController {
     @GetMapping
     List<ProductDto> findAll() {
         List<ProductDto> productDtoList = new ArrayList<>();
-        List<Product> products = productRepository.findAll();
+        // select p from Product p join fetch p.category left join fetch p.values
+        // select o from Option o
+        List<Product> products = productRepository.findAllWithCategoryAndOptions();
+
+
+        // PRODUCTS
+        // name
+        // id
+        // price
+        // category
+        // values = [Apple]
+
+        // name
+        // id
+        // category
+        // values = [Intel, LGA1150]
+
         for (Product product : products) {
-            List<Option> options = optionRepository.findAllByCategoryOrderByName(product.getCategory());
-            List<Value> values = valueRepository.findAllByProductAndOptionInOrderByOption(product, options);
             Map<String, String> valuesMap = new HashMap<>();
-            int size = Math.min(options.size(), values.size());
-            for (int i = 0; i < size; i++) {
-                valuesMap.put(options.get(i).getName(), values.get(i).getName());
+            for (Option option : product.getCategory().getOptions()) {
+                valueRepository.findByProductAndOption(product, option)
+                        .ifPresentOrElse(value -> valuesMap.put(option.getName(), value.getName()),
+                                () -> valuesMap.put(option.getName(), null));
+
             }
-            ProductDto productDto = ProductDto.of(product, valuesMap);
-            productDtoList.add(productDto);
+            productDtoList.add(ProductDto.of(product, valuesMap));
         }
+
+        // option [Производитель, Сокет]
+
+//        // select values
+//        List<Value> values = valueRepository.findAllByProductAndOptionInOrderByOption(product, options);
+//        for (Product product : products) {
+//            Map<String, String> valuesMap = new HashMap<>();
+//            int size = Math.min(options.size(), values.size());
+//            for (int i = 0; i < size; i++) {
+//                valuesMap.put(options.get(i).getName(), values.get(i).getName());
+//            }
+//            ProductDto productDto = ProductDto.of(product, valuesMap);
+//            productDtoList.add(productDto);
+//        }
         return productDtoList;
     }
 

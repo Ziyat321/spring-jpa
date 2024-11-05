@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+
+import java.util.List;
+
 @Getter
 @Setter
 
@@ -16,7 +19,10 @@ public class Option {
 
     private String name;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
+
+    @OneToMany(mappedBy = "option")
+    private List<Value> values;
 }
