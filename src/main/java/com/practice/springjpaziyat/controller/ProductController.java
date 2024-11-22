@@ -10,6 +10,7 @@ import com.practice.springjpaziyat.repository.OptionRepository;
 import com.practice.springjpaziyat.repository.ProductRepository;
 import com.practice.springjpaziyat.repository.ValueRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -23,8 +24,8 @@ public class ProductController {
     private final OptionRepository optionRepository;
     private final ValueRepository valueRepository;
 
-    @GetMapping
-    List<ProductDto> findAll() {
+    @GetMapping("/values")
+    List<ProductDto> findAllWithValues() {
         List<ProductDto> productDtoList = new ArrayList<>();
         // select p from Product p join fetch p.category left join fetch p.values
         // select o from Option o
@@ -71,16 +72,30 @@ public class ProductController {
     }
 
     @PostMapping("/{categoryId}")
-    public Product create(@PathVariable int categoryId,
+    @ResponseStatus(HttpStatus.CREATED)
+    public ProductDto create(@PathVariable int categoryId,
                           @RequestBody Product product) {
         Category category = categoryRepository.findById(categoryId).orElseThrow();
         product.setCategory(category);
-        return productRepository.save(product);
+        return ProductDto.of(productRepository.save(product));
     }
 
     @GetMapping("/price")
     List<Product> findAllByPriceBetween(@RequestParam Double startPrice,
                                         @RequestParam Double endPrice) {
         return productRepository.findAllByPriceBetween(startPrice, endPrice);
+    }
+
+    @GetMapping
+    List<ProductDto> findAll() {
+        return productRepository.findAll().stream()
+                .map(ProductDto::of)
+                .toList();
+    }
+
+    @GetMapping("{productId}")
+    ProductDto findById(@PathVariable int productId) {
+        return ProductDto.of(productRepository.findById(productId)
+                .orElseThrow());
     }
 }
